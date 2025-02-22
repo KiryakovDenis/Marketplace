@@ -35,4 +35,12 @@ public class ExceptionController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ServiceError(e.getMessage()));
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ServiceError> handleBadRequestException(BadRequestException e) {
+        log.error("ExceptionController#BadRequestException", e);
+        return ResponseEntity.badRequest()
+                .body(new ServiceError(e.getMessage()));
+    }
 }

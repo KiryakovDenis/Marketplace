@@ -1,7 +1,9 @@
 package ru.kdv.study.repository;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -51,17 +53,15 @@ public class UserRepository {
         try {
             return jdbcTemplate.queryForObject(INSERT, userToSql(user), userMapper);
         } catch (Exception e) {
-            throw DataBaseException.create(e.getMessage());
+            throw handleDbExceptionMessage(e, user);
         }
     }
 
     public User update(final User user) {
         try {
             return jdbcTemplate.queryForObject(UPDATE, userToSql(user), userMapper);
-        } catch (EmptyResultDataAccessException e) {
-            throw new NoDataFoundException(String.format("Пользователь не найден {id = %s}", user.getId()));
         } catch (Exception e) {
-            throw DataBaseException.create(e.getMessage());
+            throw handleDbExceptionMessage(e, user);
         }
     }
 
@@ -69,7 +69,7 @@ public class UserRepository {
         try {
             return jdbcTemplate.queryForObject(SELECT_BY_ID, new MapSqlParameterSource("id", id), userMapper);
         } catch (EmptyResultDataAccessException e) {
-            throw NoDataFoundException.create(String.format("Пользователь не найден {id = %s}", id));
+            throw  handleDbExceptionMessage(e, id);
         }
     }
 
@@ -90,5 +90,23 @@ public class UserRepository {
         params.addValue("create_date", LocalDateTime.now());
 
         return params;
+    }
+
+    private RuntimeException handleDbExceptionMessage (final Exception e, final User user) throws DataBaseException{
+        if (e instanceof EmptyResultDataAccessException) {
+            return NoDataFoundException.create(String.format("Пользователь не найден {id = %s}", user.getId()));
+        } else if (e.getMessage().contains("user_uk1")) {
+            return DataBaseException.create(String.format("Пользователь с электронной почтой \" %s \" - уже существует", user.getEmail()));
+        } else {
+            return DataBaseException.create(e.getMessage());
+        }
+    }
+
+    private RuntimeException handleDbExceptionMessage (final Exception e, Long id) throws DataBaseException{
+        if (e instanceof EmptyResultDataAccessException) {
+            return NoDataFoundException.create(String.format("Пользователь не найден {id = %s}", id));
+        } else {
+            return DataBaseException.create(e.getMessage());
+        }
     }
 }
