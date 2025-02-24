@@ -9,6 +9,8 @@ build/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/codeStyles/
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -41,6 +43,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### GigaIDE ###
+### GIGA IDE ###
 .gigaide/
-.gigaide/gigaide.properties
